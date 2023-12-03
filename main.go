@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 )
 
@@ -10,25 +11,21 @@ func main() {
 	defer func() {
 		fmt.Println("Time elapsed:", time.Since(start))
 	}()
+	//iteratate through the channel
+	//this example is a ninja throwing stars at a target
+	numStarsToThrow := 500
+	channel := make(chan string, numStarsToThrow)
+	go throwNinjaStars(channel, numStarsToThrow)
+	for i := 0; i < numStarsToThrow; i++ {
+		fmt.Println(<-channel)
+	}
 
-	// THIS IS A CHANNEL
-	// channel := make(chan string)
-	//cannot just use channel <- "First Message" without a go routine
-	// this will create a deadlock as the channel cant hold information is just passes it through
-	// channel <- "First Message"
-	// go func() {
-	// 	channel <- "First Message"
-	// }()
+}
 
-	// THIS IS A BUFFERED CHANNEL
-	// capacity is 1
-	// channel := make(chan string, 1)
-	// channel <- "First Message"
-
-	channel := make(chan string, 2)
-	channel <- "First Message"
-	channel <- "Second Message"
-
-	fmt.Println(<-channel)
-	fmt.Println(<-channel)
+func throwNinjaStars(channel chan string, numStarsToThrow int) {
+	for i := 0; i < numStarsToThrow; i++ {
+		//generate a random score between 1 and 10
+		score := 1 + rand.Intn(10)
+		channel <- fmt.Sprintf("You scored %d points!", score)
+	}
 }
