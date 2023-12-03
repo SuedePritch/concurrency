@@ -13,7 +13,11 @@ func main() {
 	}()
 	channel := make(chan string)
 	go throwNinjaStars(channel)
-	for message := range channel {
+	for {
+		message, open := <-channel
+		if !open {
+			break
+		}
 		fmt.Println(message)
 	}
 
