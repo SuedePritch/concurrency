@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 	"time"
 )
 
@@ -11,25 +10,43 @@ func main() {
 	defer func() {
 		fmt.Println("Time elapsed:", time.Since(start))
 	}()
-	channel := make(chan string)
-	go throwNinjaStars(channel)
-	for {
-		message, open := <-channel
-		if !open {
-			break
-		}
-		fmt.Println(message)
-	}
+	//channel select statement
+	//the select statement lets a goroutine wait on multiple communication operations.
+	//A select blocks until one of its cases can run, then it executes that case.
+	//It chooses one at random if multiple are ready.
+	//The default case in a select is run if no other case is ready.
+	ninja1, ninja2 := make(chan string), make(chan string)
+	go captainElect(ninja1, "Ninja1")
+	go captainElect(ninja2, "Ninja2")
 
+	select {
+	case message := <-ninja1:
+		fmt.Println(message)
+	case message := <-ninja2:
+		fmt.Println(message)
+	default:
+		fmt.Println("No one is the captain")
+	}
+	roughlyFair()
 }
 
-func throwNinjaStars(channel chan string) {
-	numStarsToThrow := 20
-	for i := 0; i < numStarsToThrow; i++ {
-		//generate a random score between 1 and 10
-		score := 1 + rand.Intn(10)
-		channel <- fmt.Sprintf("You scored %d points!", score)
+func captainElect(ninja chan string, message string) {
+	ninja <- message
+}
+func roughlyFair() {
+	ninja1 := make(chan interface{})
+	close(ninja1)
+	ninja2 := make(chan interface{})
+	close(ninja2)
+
+	var ninja1Count, ninja2Count int
+	for i := 0; i < 1000; i++ {
+		select {
+		case <-ninja1:
+			ninja1Count++
+		case <-ninja2:
+			ninja2Count++
+		}
 	}
-	//this allows the for loop in main() to exit
-	close(channel)
+	fmt.Printf("ninja1 %d vs %d ninja2\n", ninja1Count, ninja2Count)
 }
